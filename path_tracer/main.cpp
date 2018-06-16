@@ -4,30 +4,20 @@
 
 #include <iostream>
 #include <math.h> 
-#include <stdlib.h> // Make : g++ -O3 -fopenmp smallpt.cpp -o smallpt 
-#include <stdio.h>  //        Remove "-fopenmp" for g++ version < 4.2 
+#include <stdlib.h>
+#include <stdio.h>
 #include <random>
 
-using namespace std;
+#include "objects.h"
+#include "utils.h"
 
+using namespace std;
 
 std::default_random_engine generator;
 std::uniform_real_distribution<double> distr(0.0, 1.0);
 double erand48(unsigned short *Xi) {
 	return distr(generator);
 }
-
-struct Vec {
-	double x, y, z;
-	Vec(double x_ = 0, double y_ = 0, double z_ = 0) { x = x_; y = y_; z = z_; }
-	Vec operator+(const Vec &b) const { return Vec(x + b.x, y + b.y, z + b.z); }
-	Vec operator-(const Vec &b) const { return Vec(x - b.x, y - b.y, z - b.z); }
-	Vec operator*(double b) const { return Vec(x*b, y*b, z*b); }
-	Vec mult(const Vec &b) const { return Vec(x*b.x, y*b.y, z*b.z); }
-	Vec& norm() { return *this = *this * (1 / sqrt(x*x + y * y + z * z)); }
-	double dot(const Vec &b) const { return x * b.x + y * b.y + z * b.z; }
-	Vec operator%(Vec&b) { return Vec(y*b.z - z * b.y, z*b.x - x * b.z, x*b.y - y * b.x); }
-};
 
 struct Ray { Vec o, d; Ray(Vec o_, Vec d_) : o(o_), d(d_) {} };
 
@@ -57,8 +47,6 @@ Sphere spheres[] = {//Scene: radius, position, emission, color, material
 	Sphere(16.5,Vec(73,16.5,78),       Vec(),Vec(1,1,1)*.999, REFR),//Glas 
 	Sphere(600, Vec(50,681.6 - .27,81.6),Vec(12,12,12),  Vec(), DIFF) //Lite 
 };
-
-
 
 inline double clamp(double x) { return x<0 ? 0 : x>1 ? 1 : x; }
 inline int toInt(double x) { return int(pow(clamp(x), 1 / 2.2) * 255 + .5); }
@@ -95,61 +83,6 @@ Vec radiance(const Ray &r, int depth, unsigned short *Xi) {
 	return obj.e + f.mult(depth>2 ? (erand48(Xi)<P ?   // Russian roulette 
 		radiance(reflRay, depth, Xi)*RP : radiance(Ray(x, tdir), depth, Xi)*TP) :
 		radiance(reflRay, depth, Xi)*Re + radiance(Ray(x, tdir), depth, Xi)*Tr);
-}
-
-int WriteImageToBmp(Vec const *image, int width, int height) {
-	FILE *f;
-	unsigned char *img = NULL;
-	int filesize = 54 + 3 * width * height;  //w is your image width, h is image height, both int
-
-	img = (unsigned char *)malloc(3 * width * height);
-	memset(img, 0, 3 * width * height);
-
-	for (int i = 0; i < width; i++)
-	{
-		for (int j = 0; j < height; j++)
-		{
-			int x = i, y = (height - 1) - j;
-			int r = toInt(image[y * width + x].x);
-			int g = toInt(image[y * width + x].y);
-			int b = toInt(image[y * width + x].z);
-			img[(x + y * width) * 3 + 2] = (unsigned char)(r);
-			img[(x + y * width) * 3 + 1] = (unsigned char)(g);
-			img[(x + y * width) * 3 + 0] = (unsigned char)(b);
-		}
-	}
-
-	unsigned char bmpfileheader[14] = { 'B','M', 0,0,0,0, 0,0, 0,0, 54,0,0,0 };
-	unsigned char bmpinfoheader[40] = { 40,0,0,0, 0,0,0,0, 0,0,0,0, 1,0, 24,0 };
-	unsigned char bmppad[3] = { 0,0,0 };
-
-	bmpfileheader[2] = (unsigned char)(filesize);
-	bmpfileheader[3] = (unsigned char)(filesize >> 8);
-	bmpfileheader[4] = (unsigned char)(filesize >> 16);
-	bmpfileheader[5] = (unsigned char)(filesize >> 24);
-
-	bmpinfoheader[4] = (unsigned char)(width);
-	bmpinfoheader[5] = (unsigned char)(width >> 8);
-	bmpinfoheader[6] = (unsigned char)(width >> 16);
-	bmpinfoheader[7] = (unsigned char)(width >> 24);
-	bmpinfoheader[8] = (unsigned char)(height);
-	bmpinfoheader[9] = (unsigned char)(height >> 8);
-	bmpinfoheader[10] = (unsigned char)(height >> 16);
-	bmpinfoheader[11] = (unsigned char)(height >> 24);
-
-	f = fopen("img.bmp", "wb");
-	fwrite(bmpfileheader, 1, 14, f);
-	fwrite(bmpinfoheader, 1, 40, f);
-	for (int i = 0; i < height; i++)
-	{
-		fwrite(img + (width * (height - i - 1) * 3), 3, width, f);
-		fwrite(bmppad, 1, (4 - (width * 3) % 4) % 4, f);
-	}
-
-	free(img);
-	fclose(f);
-
-	return 0;
 }
 
 int main(int argc, char *argv[]) {
