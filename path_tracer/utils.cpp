@@ -1,3 +1,22 @@
+/*
+Copyright (c) 2018 Roman Kazantsev
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
 #include <vector>
 #include <algorithm>
 #include <fstream>
@@ -10,7 +29,7 @@ using namespace std;
 inline double clamp(double x) { return x<0 ? 0 : x>1 ? 1 : x; }
 inline int toInt(double x) { return int(pow(clamp(x), 1 / 2.2) * 255 + .5); }
 
-int WriteImageToBmp(Vec const *image, int width, int height) {
+int WriteImageToBmp(Vector3D const *image, int width, int height) {
 	int filesize = 54 + 3 * width * height;  //w is your image width, h is image height, both int
 
 	std::vector<unsigned char> data(3 * width * height);
@@ -94,7 +113,7 @@ Vector3D Vector3D::operator- (Vector3D const &other) const {
 
 	return res;
 }
-Vector3D Vector3D::operator* (float scalar) const {
+Vector3D Vector3D::operator* (double scalar) const {
 	Vector3D res;
 	res.x = this->x * scalar;
 	res.y = this->y * scalar;
@@ -113,7 +132,7 @@ Vector3D Vector3D::mult(Vector3D const &other) const{
 Vector3D& Vector3D::norm() {
 	return *this = *this * (1.0f / sqrt(x * x + y * y + z * z));
 }
-float Vector3D::dot(Vector3D const& other) const {
+double Vector3D::dot(Vector3D const& other) const {
 	return x * other.x + y * other.y + z * other.z;
 }
 Vector3D Vector3D::operator% (Vector3D const& other) const {

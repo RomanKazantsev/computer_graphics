@@ -17,31 +17,41 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#pragma once
+#include <vector>
+#include <memory>
+#include <utility>
+#include <limits>
+#include <random>
+
+#include "utils.h"
 #include "objects.h"
 
-bool Object::IsLight() const {
-	if (emission.x != 0.0 || emission.y != 0.0 || emission.z != 0.0) return true;
-	return false;
-}
+using namespace std;
 
-double SphereObject::Intersect(Ray3D const &ray) const {
-	double eps = 1e-4;
+class Scene {
+	public:
+		// empty constructor
+		Scene(int max_depth_ = 5) : distribution(0.0, 1.0), max_depth(max_depth_) {}
+		// destructor
+		virtual ~Scene() {}
+		// add a new object to scene
+		void AddObject(Object* object_ptr) {
+			std::unique_ptr<Object> tmp_ptr(object_ptr);
+			object_ptrs.push_back(std::move(tmp_ptr));
+		}
+		Vector3D ComputeRadiance(Ray3D const &r, int depth);
+	private:
+		// copy constructor is not allowed
+		Scene(Scene const &other) {}
+		// intersect a ray with the nearest object of the scene
+		Object* IntersectWithNearestObject(Ray3D const &ray, double &t);
+		// generate a random unit vector in hemisphere
+		Vector3D GenerateRandomUnitVectorInHemisphere(Vector3D const &normal);
 
-	// Need to solve t^2*d*d + 2*t*(o-c)*d + (o-c)*(o-c)-r^2 = 0
-	double a = ray.direction.dot(ray.direction);
-	Vector3D tmp = ray.origin - center;
-	double b = 2.0f * ray.direction.dot(tmp);
-	double c = tmp.dot(tmp) - radius * radius;
-	double det = b * b - 4.0 * a * c;
-
-	if (det < 0.0f) return 0;
-	double t1 = (-b + sqrt(det)) / (2.0 * a);
-	double t2 = (-b - sqrt(det)) / (2.0 * a); // t2 <= t1 since a > 0
-	if (t2 > eps) return t2;
-	if (t1 > eps) return t1;
-	return 0;
-}
-
-Vector3D SphereObject::GetNormal(Vector3D const &point) const {
-	return (point - center).norm();
-}
+	private:
+		std::vector<std::unique_ptr<Object>> object_ptrs;
+		std::default_random_engine generator;
+		std::uniform_real_distribution<double> distribution;
+		int max_depth;
+};

@@ -1,42 +1,49 @@
+/*
+Copyright (c) 2018 Roman Kazantsev
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
 #pragma once
 
 #include <cmath>
 
-struct Vec {
-	double x, y, z;
-	Vec(double x_ = 0, double y_ = 0, double z_ = 0) { x = x_; y = y_; z = z_; }
-	Vec operator+(const Vec &b) const { return Vec(x + b.x, y + b.y, z + b.z); }
-	Vec operator-(const Vec &b) const { return Vec(x - b.x, y - b.y, z - b.z); }
-	Vec operator*(double b) const { return Vec(x*b, y*b, z*b); }
-	Vec mult(const Vec &b) const { return Vec(x*b.x, y*b.y, z*b.z); }
-	Vec& norm() { return *this = *this * (1 / sqrt(x*x + y * y + z * z)); }
-	double dot(const Vec &b) const { return x * b.x + y * b.y + z * b.z; }
-	Vec operator%(Vec&b) { return Vec(y*b.z - z * b.y, z*b.x - x * b.z, x*b.y - y * b.x); }
-};
-
-int WriteImageToBmp(Vec const *image, int width, int height);
-
 class Vector3D {
 public:
 	// constructor
-	Vector3D(float xx = 0.0f, float yy = 0.0f, float zz = 0.0f) : x(xx), y(yy), z(zz) {}
+	Vector3D(double xx = 0.0, double yy = 0.0, double zz = 0.0) : x(xx), y(yy), z(zz) {}
 	// copy contructor
 	Vector3D(Vector3D const &other) : x(other.x), y(other.y), z(other.z) {}
+	// destructor
+	virtual ~Vector3D() {}
 	// operations
 	Vector3D& operator= (Vector3D const & other);
 	Vector3D operator+ (Vector3D const &other) const;
 	Vector3D operator- (Vector3D const &other) const;
-	Vector3D operator* (float scalar) const;
+	Vector3D operator* (double scalar) const;
 	Vector3D mult(Vector3D const &other) const;
 	Vector3D& norm();
-	float dot(Vector3D const& other) const;
+	double dot(Vector3D const& other) const;
 	Vector3D operator% (Vector3D const& other) const;
-
-private:
-	float x, y, z;
+	double x, y, z;
 };
 
 struct Ray3D {
 	Vector3D origin, direction;
 	Ray3D(Vector3D origin_, Vector3D direction_) : origin(origin_), direction(direction_) {}
 };
+
+int WriteImageToBmp(Vector3D const *image, int width, int height);
